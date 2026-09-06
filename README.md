@@ -1,4 +1,4 @@
-# DataQualy
+# DataQuality
 
 Ferramenta open source para auditar migrações entre CSV, Firebird e PostgreSQL.
 Executa regras com PySpark e gera um relatório HTML com contagens e amostras.
