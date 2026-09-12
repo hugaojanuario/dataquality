@@ -1,0 +1,7 @@
+engine: firebird
+host: localhost
+port: 3050
+database: /synthetic/source.fdb
+user: audit_reader
+password_env: DATAQUALY_SOURCE_PASSWORD
+jar: /drivers/jaybird.jar

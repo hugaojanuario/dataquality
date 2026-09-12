@@ -93,6 +93,12 @@ def run_package_validation(config: dict[str, Any]) -> ValidationReport:
         report.results.extend(check_csv_layout(file_config))
     if package.get("attachments"):
         report.results.append(check_attachments(package["attachments"]))
+    sample_size = max(0, min(20, int(config.get("report", {}).get("sample_size", 0))))
+    for result in report.results:
+        result.sample = [
+            {key: "[redigido]" for key in sample}
+            for sample in result.sample[:sample_size]
+        ]
     report.finished_at = datetime.now()
     return report
 

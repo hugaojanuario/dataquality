@@ -18,24 +18,38 @@ def build_parser() -> argparse.ArgumentParser:
         help="Caminho do relatório HTML.",
     )
     subcommands.add_parser("gui", help="Abre a interface gráfica.")
+    subcommands.add_parser("gui-legacy", help="Abre a interface original por tabela.")
+    from dataqualy.audit.cli import add_commands
+    add_commands(subcommands)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Executa a interface de linha de comando."""
     args = build_parser().parse_args(argv)
+    if args.command == 'audit':
+        from dataqualy.audit.cli import run
+        return run(args)
+    if args.command == 'gui-legacy':
+        from dataqualy.gui import DataQualyApp
+        DataQualyApp().mainloop()
+        return 0
     if args.command == "gui":
         from dataqualy.gui import launch_gui
 
         launch_gui()
         return 0
     if args.command == "validate":
-        config = load_config(args.config)
-        report = (
-            run_package_validation(config)
-            if config.get("mode") == "package"
-            else run_validation(config)
-        )
+        try:
+            config = load_config(args.config)
+            report = (
+                run_package_validation(config)
+                if config.get("mode") == "package"
+                else run_validation(config)
+            )
+        except Exception:
+            print("Validação incompleta. Verifique configuração, acesso às fontes e drivers.")
+            return 2
         output = write_html_report(report, args.report)
         print(f"Relatório: {output.resolve()}")
         print(

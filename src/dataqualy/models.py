@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 
-CheckStatus = Literal["passed", "failed", "error"]
+CheckStatus = Literal["passed", "failed", "inconclusive", "error", "skipped"]
 
 
 @dataclass(slots=True)
@@ -33,7 +33,7 @@ class ValidationReport:
 
     @property
     def passed(self) -> bool:
-        return all(result.passed for result in self.results)
+        return bool(self.results) and all(result.passed for result in self.results)
 
     @property
     def issue_count(self) -> int:

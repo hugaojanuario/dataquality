@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from dataqualy.cli import main
-from dataqualy.models import ValidationReport
+from dataqualy.models import CheckResult, ValidationReport
 
 
 def _report() -> ValidationReport:
@@ -10,6 +10,7 @@ def _report() -> ValidationReport:
         migration_name="example",
         started_at=datetime(2026, 1, 1),
         finished_at=datetime(2026, 1, 1),
+        results=[CheckResult('synthetic', 'count', 'passed', 0, 'OK')],
     )
 
 

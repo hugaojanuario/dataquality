@@ -63,6 +63,7 @@ def write_html_report(report: ValidationReport, path: str | Path) -> Path:
 <body>
   <header>
     <h1>DataQualy</h1>
+    <p>Amostras, quando presentes, podem conter dados pessoais. No fluxo de validação são limitadas e mascaradas.</p>
     <p><strong>Migração:</strong> {escape(report.migration_name)}</p>
     <p><strong>Resultado:</strong> {overall}</p>
     <p><strong>Divergências:</strong> {report.issue_count}</p>

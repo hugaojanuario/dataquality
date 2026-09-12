@@ -37,7 +37,7 @@ def build_database_config(values: dict[str, str]) -> dict[str, Any]:
             "missing_records": True,
             "compare_columns": compare_columns,
         },
-        "report": {"sample_size": 20},
+        "report": {"sample_size": 0},
     }
 
 
@@ -121,8 +121,8 @@ class DataQualyApp(tk.Tk):
                 else f"{report.issue_count} divergência(s) encontrada(s)."
             )
             self.after(0, self._finish, message, str(output.resolve()), None)
-        except Exception as error:
-            self.after(0, self._finish, "", "", str(error))
+        except Exception:
+            self.after(0, self._finish, "", "", "Falha na validação. Verifique conexão, driver, permissões e configuração.")
 
     def _finish(self, message: str, output: str, error: str | None) -> None:
         self.run_button.state(["!disabled"])
@@ -136,7 +136,8 @@ class DataQualyApp(tk.Tk):
 
 def launch_gui() -> None:
     """Abre a interface gráfica local."""
-    DataQualyApp().mainloop()
+    from dataqualy.audit.gui import AuditApp
+    AuditApp().mainloop()
 
 
 # @hugaojanuario

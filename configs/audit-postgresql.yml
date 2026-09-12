@@ -1,0 +1,7 @@
+engine: postgresql
+host: localhost
+port: 5432
+database: synthetic_target
+user: audit_reader
+password_env: DATAQUALY_TARGET_PASSWORD
+jar: /drivers/postgresql.jar

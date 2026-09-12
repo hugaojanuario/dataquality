@@ -3,31 +3,17 @@ from pathlib import Path
 from typing import Any
 
 from pyspark.sql import DataFrame, SparkSession
+from dataqualy.audit.engines import ENGINES, jdbc_url
 
 
-DEFAULT_DRIVERS = {
-    "firebird": "org.firebirdsql.jdbc.FBDriver",
-    "postgresql": "org.postgresql.Driver",
-}
+DEFAULT_DRIVERS = {name: engine.driver for name, engine in ENGINES.items()}
 
-DEFAULT_PORTS = {
-    "firebird": 3050,
-    "postgresql": 5432,
-}
+DEFAULT_PORTS = {name: engine.port for name, engine in ENGINES.items()}
 
 
 def build_jdbc_url(config: dict[str, Any]) -> str:
     """Monta a URL JDBC sem incluir usuário ou senha."""
-    engine = str(config["engine"]).lower()
-    host = config.get("host", "localhost")
-    port = int(config.get("port", DEFAULT_PORTS[engine]))
-    database = config["database"]
-
-    if engine == "firebird":
-        return f"jdbc:firebirdsql://{host}:{port}/{database}"
-    if engine == "postgresql":
-        return f"jdbc:postgresql://{host}:{port}/{database}"
-    raise ValueError(f"Banco não suportado: {engine}")
+    return jdbc_url(config)
 
 
 def resolve_password(config: dict[str, Any]) -> str:

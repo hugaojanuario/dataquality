@@ -19,7 +19,7 @@ def _evaluate(
 ) -> CheckResult:
     issue_count = dataframe.count()
     sample = [
-        {key: value for key, value in row.asDict(recursive=True).items()}
+        {key: "[redigido]" for key in row.asDict(recursive=True)}
         for row in dataframe.limit(sample_size).collect()
     ]
     return CheckResult(
@@ -36,14 +36,15 @@ def run_validation(config: dict[str, Any]) -> ValidationReport:
         config.get("migration", {}).get("name", "validation"),
         datetime.now(),
     )
-    sample_size = int(config.get("report", {}).get("sample_size", 20))
+    sample_size = max(0, min(20, int(config.get("report", {}).get("sample_size", 0))))
     source_configs = config.get("datasets") or {
         "source": config["source"],
         "target": config["target"],
     }
-    spark = create_spark_session(collect_jars(*source_configs.values()))
-    spark.sparkContext.setLogLevel("ERROR")
+    spark = None
     try:
+        spark = create_spark_session(collect_jars(*source_configs.values()))
+        spark.sparkContext.setLogLevel("ERROR")
         datasets = {
             name: read_dataset(spark, source_config)
             for name, source_config in source_configs.items()
@@ -74,9 +75,15 @@ def run_validation(config: dict[str, Any]) -> ValidationReport:
                 name=rule_config.get("name", rule_config["rule"]),
                 rule=rule_config["rule"], sample_size=sample_size,
             ))
+    except Exception:
+        report.results.append(CheckResult(
+            "Execução incompleta", "execution", "error", 0,
+            "Verifique conexão, driver, permissões, tipos e configuração. Nenhuma aprovação emitida.",
+        ))
     finally:
         report.finished_at = datetime.now()
-        spark.stop()
+        if spark is not None:
+            spark.stop()
     return report
 
 
