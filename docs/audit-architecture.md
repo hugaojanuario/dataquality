@@ -151,9 +151,10 @@ fazem parte da aprovação. As regras customizadas antigas continuam em `validat
 
 ## GUI e cancelamento
 
-Oito abas Tk, sem servidor. Conexão, descoberta, captura, leitura/gravação e comparação
-ocorrem em worker. A thread principal só altera widgets e consome uma fila a cada
-100 ms. Senhas não são capturadas por logs de erro. Cancelar sinaliza Event e tenta
+Interface padrão em PySide6/Qt Quick, sem servidor; detalhes em [desktop.md](desktop.md).
+Conexão, descoberta, captura, leitura/gravação e comparação ocorrem em QThreadPool.
+Signals com conexão queued entregam resultados ao view model na thread de UI.
+O fluxo Tk anterior permanece em `gui-audit-legacy`. Senhas não são capturadas por logs de erro. Cancelar sinaliza Event e tenta
 `Statement.cancel()` fora da thread de UI; captura checa cancelamento por registro,
 tabela e metadado. Drivers podem demorar até o timeout da consulta; conexão/metadados
 podem depender do timeout de rede do driver. Não se mata thread nem se interrompe

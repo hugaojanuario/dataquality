@@ -70,6 +70,22 @@ Testes unitários validam descoberta, SQL, falhas e fluxo completo sem bancos re
 Compatibilidade real depende da versão do banco/JAR e permissões. Não há validação
 de instâncias reais implícita nesta matriz.
 
+## Download dos drivers JDBC
+
+O DataQuality usa Java 17. Baixe o JAR do banco e selecione-o no campo
+**Driver JDBC (.jar)** da tela de conexões. Links verificados em 13/09/2026:
+
+| Banco | Versão indicada | Download direto | Página oficial |
+|---|---|---|---|
+| Firebird 3, 4 ou 5 | Jaybird 6.0.6 | [jaybird-6.0.6.jar](https://repo1.maven.org/maven2/org/firebirdsql/jdbc/jaybird/6.0.6/jaybird-6.0.6.jar) | [Firebird JDBC](https://firebirdsql.org/en/jdbc-driver/) |
+| PostgreSQL | pgJDBC 42.7.13 | [postgresql-42.7.13.jar](https://jdbc.postgresql.org/download/postgresql-42.7.13.jar) | [pgJDBC](https://jdbc.postgresql.org/download/) |
+| SQL Server · experimental | Microsoft JDBC 13.4.0 para Java 11+ | [mssql-jdbc-13.4.0.jre11.jar](https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/13.4.0.jre11/mssql-jdbc-13.4.0.jre11.jar) | [Microsoft JDBC](https://learn.microsoft.com/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server) |
+| MySQL · experimental | Connector/J 26.7.0 | [mysql-connector-j-26.7.0.jar](https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/26.7.0/mysql-connector-j-26.7.0.jar) | [MySQL Connector/J](https://dev.mysql.com/downloads/connector/j/) |
+
+No Firebird, o campo **Banco** recebe o alias configurado no servidor ou o caminho
+do arquivo `.fdb` visto pelo servidor. Se o Firebird estiver em Docker, use o
+caminho de dentro do container, não o caminho do computador hospedeiro.
+
 ## Arquitetura e limites
 
 `dataqualy.audit`: conectores → inventário/snapshot → mapeamento → checks →
@@ -92,7 +108,7 @@ Não há promessa de garantia total nem mecanismo antifraude de artefatos.
 
 - Python 3.11
 - Java 17 para JDBC e testes/regras Spark (configure JAVA_HOME se necessário)
-- Drivers JDBC do Firebird e PostgreSQL para conexões com bancos
+- Driver JDBC correspondente ao banco, conforme os links acima
 
 ## Instalação
 
@@ -115,15 +131,71 @@ Também funciona com:
 O comando retorna código 0 quando aprovado e 1 quando encontra divergências.
 O relatório padrão fica em reports/validation-report.html.
 
-## Interface gráfica
+## Interface desktop moderna
 
-    dataqualy gui
+A interface padrão usa **PySide6 + Qt Quick/QML**, com tema claro por padrão e tema oceano escuro,
+sidebar recolhível, editor visual de mapeamentos, workers e relatório integrado.
+Não usa servidor HTTP nem navegador embutido.
 
-A interface tem oito abas: projeto, conexões, descoberta, revisão do manifesto,
-capturas antes/depois e resultado. Conexão, descoberta e auditoria rodam em worker,
-com progresso e cancelamento cooperativo. O editor de mapeamento usa JSON nesta rodada.
-O fluxo anterior por tabela continua disponível em `dataqualy gui-legacy`.
-Senhas ficam somente em memória. Tkinter precisa estar instalado no Python utilizado.
+```sh
+python -m pip install -e ".[dev,jdbc]"
+dataqualy gui
+dataqualy gui --demo
+dataqualy gui --project reports/run-1
+```
+
+Também aceita `python -m dataqualy gui --demo`, `dataqualy-desktop --demo`
+e `python -m dataqualy.desktop.app --demo`. O modo demo usa somente 60 registros
+sintéticos em três tabelas e executa o motor real: 68 checks aprovados e um
+check divergente por um registro alterado. Não exige Java, JAR ou banco.
+O projeto demo é temporário; exporte o relatório antes de fechar.
+
+![Visão geral sintética](docs/screenshots/overview-light-1280.png)
+
+[Conexões](docs/screenshots/connections-light-1280.png) ·
+[Resultado sintético](docs/screenshots/result-light-1280.png) ·
+[Tema escuro](docs/screenshots/overview-dark-1280.png)
+
+**Fluxo real:** escolha um diretório por auditoria em Configurações; configure
+ou importe os perfis YAML em Conexões; descubra os bancos; gere e revise o
+mapeamento; capture origem e baseline na Validação; execute seu conversor
+externamente; capture e valide o destino. Confirme que as escritas estão suspensas.
+O perfil exaustivo usa a variável `DATAQUALY_EVIDENCE_KEY` já documentada acima.
+
+No Mapeamento, clique em uma linha para editar destino, colunas, chaves compostas
+(separadas por vírgula) e exclusões justificadas. Confirme cada revisão e salve
+explicitamente o manifesto. Alterações invalidam o resultado em tela até nova
+comparação. A seleção em massa na Descoberta serve para exclusões justificadas;
+a captura mantém o inventário completo para medir cobertura corretamente.
+
+Cada pasta de projeto mantém `project.json` com nome, descrição, conexões sem senha,
+opções e última tela. Descobertas ficam em `discovery-source.json` e
+`discovery-target.json`; mapeamentos, capturas, histórico e relatório também são
+mantidos nessa pasta. Ao reabrir o aplicativo, o último projeto é carregado e os
+projetos recentes podem ser alternados em Configurações.
+
+Senhas ficam apenas em memória e não são propriedades legíveis do view model nem
+entram no JSON. Use `password_env` para não precisar digitá-las ao reabrir. A
+confirmação de escritas suspensas também precisa ser refeita em cada captura.
+Erros do driver não são exibidos crus. Tema e redução de animações persistem
+localmente.
+
+Atalhos: `Ctrl+1` a `Ctrl+7` para navegação; Tab/Shift+Tab entre controles;
+Enter/Espaço para acionar botões; Escape para fechar diálogos. Janela inicial de
+1280×800, mínimo 1024×700, com rolagem quando necessário.
+
+Compatibilidade temporária: `dataqualy gui-legacy` abre o fluxo Tkinter por tabela;
+`dataqualy gui-audit-legacy` abre a auditoria Tkinter anterior. Somente os comandos
+legacy precisam de Tkinter. CLI, YAML, snapshots e manifestos existentes permanecem.
+
+Para gerar a matriz visual de 32 capturas (8 telas × 2 temas × 2 tamanhos):
+
+```sh
+dataqualy gui --demo --screenshots reports/screenshots
+```
+
+O comando exige `--demo`, captura e encerra. Em CI use `QT_QPA_PLATFORM=offscreen`
+e `QT_QUICK_BACKEND=software`. Veja [arquitetura e verificação desktop](docs/desktop.md).
 
 ## Configuração e regras
 
@@ -179,13 +251,36 @@ Sem essas variáveis, os quatro casos são pulados com motivo explícito.
 
 Para testar somente a fatia sem iniciar Spark: `pytest tests/test_audit*.py -v`.
 
+## Aplicativo macOS
+
+```sh
+DATAQUALITY_PYTHON=.venv/bin/python ./scripts/build-macos.sh --smoke-test
+open dist/DataQuality.app
+open dist/DataQuality.app --args --demo
+```
+
+O build gera `dist/DataQuality.app` e um instalador
+`dist/DataQuality-macos-arm64.dmg` (Apple Silicon) ou `x86_64.dmg` (Intel).
+Abra o DMG e arraste DataQuality para Applications. Compile em cada arquitetura
+usando o Python correspondente; não é um binário universal.
+
+O ícone de veleiro inclui versões Retina em `.icns`. O build local tem assinatura
+ad hoc, sem notarização Apple; distribuição pública assinada exige Developer ID.
+O [workflow macOS](.github/workflows/desktop-macos.yml) gera e testa o aplicativo.
+
 ## Executável Windows
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-    .\scripts\build-executable.ps1
+    .\scripts\build-executable.ps1 -SmokeTest
 
 O resultado será dist\dataqualy.exe. O computador ainda precisa de Java 17 e
-dos drivers JDBC selecionados na interface.
+dos drivers JDBC selecionados na interface para fluxos reais. `dataqualy.exe --demo`
+abre a demonstração sem esses requisitos. O spec coleta QML, plugins Qt e JPype;
+o veleiro usa `.ico` multirresolução no Windows. As fontes são as do sistema.
+
+O workflow [Desktop Windows](.github/workflows/desktop-windows.yml) executa testes,
+build e smoke test do `.exe` com 32 screenshots. Execute o build no Windows;
+não há compilação cruzada de `.exe` no macOS.
 
 ## Privacidade
 
