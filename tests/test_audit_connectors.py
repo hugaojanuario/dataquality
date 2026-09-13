@@ -1,4 +1,6 @@
 from threading import Event
+from pathlib import Path
+import subprocess
 from unittest.mock import Mock
 
 import pytest
@@ -7,6 +9,44 @@ from dataqualy.audit.connectors import AuditError, Cancelled, JDBCConnector
 from dataqualy.audit.domain import CaptureOptions, Column, ConnectionProfile, ForeignKey, Index, PrimaryKey, Table
 from dataqualy.audit.engines import ENGINES, compatible, get_engine, jdbc_url
 from dataqualy.audit.evidence import Hasher
+from dataqualy.audit.connectors import _jvm_path
+
+
+def test_jvm_uses_registered_runtime(monkeypatch):
+    import jpype
+    monkeypatch.setattr(jpype, 'getDefaultJVMPath', lambda: '/registered/libjvm')
+    assert _jvm_path() == '/registered/libjvm'
+
+
+@pytest.mark.parametrize('machine,prefix', [('arm64', '/opt/homebrew/opt'), ('x86_64', '/usr/local/opt')])
+def test_finder_launch_finds_unregistered_homebrew_java(monkeypatch, machine, prefix):
+    import jpype
+    from dataqualy.audit import connectors
+    monkeypatch.delenv('JAVA_HOME', raising=False)
+    monkeypatch.setattr(connectors.sys, 'platform', 'darwin')
+    monkeypatch.setattr(connectors.platform, 'machine', lambda: machine)
+    monkeypatch.setattr(jpype, 'getDefaultJVMPath', Mock(side_effect=subprocess.CalledProcessError(1, '/usr/libexec/java_home')))
+    formula = Path(prefix) / 'openjdk@17'
+    library = formula / 'libexec/openjdk.jdk/Contents/Home/lib/server/libjvm.dylib'
+    monkeypatch.setattr(Path, 'glob', lambda self, pattern: [formula] if str(self) == prefix else [])
+    monkeypatch.setattr(Path, 'is_file', lambda self: self == library)
+    assert _jvm_path() == str(library)
+
+
+@pytest.mark.parametrize('system,java_home', [('darwin', ''), ('darwin', '/explicit/jdk'), ('win32', '')])
+def test_missing_java_has_public_error_and_respects_override(monkeypatch, system, java_home):
+    import jpype
+    from dataqualy.audit import connectors
+    monkeypatch.setattr(connectors.sys, 'platform', system)
+    monkeypatch.setenv('JAVA_HOME', java_home)
+    monkeypatch.setattr(jpype, 'getDefaultJVMPath', Mock(side_effect=jpype.JVMNotFoundException('private-path')))
+    scan = Mock(return_value=[])
+    monkeypatch.setattr(Path, 'glob', scan)
+    with pytest.raises(AuditError, match='Java não localizado') as exc:
+        _jvm_path()
+    assert 'private-path' not in str(exc.value)
+    if java_home or system != 'darwin':
+        scan.assert_not_called()
 
 
 @pytest.mark.parametrize('engine,expected', [

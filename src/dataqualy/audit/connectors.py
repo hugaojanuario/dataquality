@@ -6,6 +6,9 @@ from pathlib import Path
 from threading import Event, Lock
 from typing import Protocol
 import os
+import platform
+import subprocess
+import sys
 
 from .domain import Column, ColumnProfile, ConnectionProfile, ForeignKey, Index, PrimaryKey, Table, TableProfile, CaptureOptions
 from .engines import family, get_engine, jdbc_url
@@ -31,6 +34,23 @@ class Connector(Protocol):
 _JVM_LOCK = Lock()
 
 
+def _jvm_path() -> str:
+    import jpype
+
+    try:
+        return jpype.getDefaultJVMPath()
+    except (jpype.JVMNotFoundException, OSError, subprocess.SubprocessError):
+        # Finder does not inherit shell JAVA_HOME; Homebrew JDKs may not be
+        # registered with /usr/libexec/java_home. Respect an explicit override.
+        if sys.platform == 'darwin' and not os.environ.get('JAVA_HOME'):
+            prefix = '/opt/homebrew/opt' if platform.machine() == 'arm64' else '/usr/local/opt'
+            for formula in sorted(Path(prefix).glob('openjdk*')):
+                library = formula / 'libexec/openjdk.jdk/Contents/Home/lib/server/libjvm.dylib'
+                if library.is_file():
+                    return str(library)
+        raise AuditError('Java não localizado. Instale um JDK ou configure JAVA_HOME e reabra o aplicativo.') from None
+
+
 class JDBCConnector:
     def __init__(self, profile: ConnectionProfile, password: str | None = None, cancel: Event | None = None):
         self.engine = get_engine(profile.engine).name
@@ -39,9 +59,9 @@ class JDBCConnector:
         self.connection = None
         self.statement = None
         try:
-            import jpype
             if not Path(profile.jar).is_file():
                 raise AuditError('Selecione um JAR JDBC existente.')
+            import jpype
             url = jdbc_url(asdict(profile))
             import hashlib
             self.identity = hashlib.sha256(url.encode('utf-8')).hexdigest()
@@ -51,7 +71,7 @@ class JDBCConnector:
             with _JVM_LOCK:
                 jpype.addClassPath(str(Path(profile.jar).resolve()))
                 if not jpype.isJVMStarted():
-                    jpype.startJVM(convertStrings=True)
+                    jpype.startJVM(jvmpath=_jvm_path(), convertStrings=True)
             properties = jpype.JClass('java.util.Properties')()
             properties.setProperty('user', profile.user)
             properties.setProperty('password', secret)
