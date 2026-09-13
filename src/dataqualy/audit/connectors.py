@@ -34,6 +34,10 @@ class Connector(Protocol):
 _JVM_LOCK = Lock()
 
 
+def _is_macos() -> bool:
+    return sys.platform == 'darwin'
+
+
 def _jvm_path() -> str:
     import jpype
 
@@ -42,7 +46,7 @@ def _jvm_path() -> str:
     except (jpype.JVMNotFoundException, OSError, subprocess.SubprocessError):
         # Finder does not inherit shell JAVA_HOME; Homebrew JDKs may not be
         # registered with /usr/libexec/java_home. Respect an explicit override.
-        if sys.platform == 'darwin' and not os.environ.get('JAVA_HOME'):
+        if _is_macos() and not os.environ.get('JAVA_HOME'):
             prefix = '/opt/homebrew/opt' if platform.machine() == 'arm64' else '/usr/local/opt'
             for formula in sorted(Path(prefix).glob('openjdk*')):
                 library = formula / 'libexec/openjdk.jdk/Contents/Home/lib/server/libjvm.dylib'

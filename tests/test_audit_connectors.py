@@ -23,7 +23,7 @@ def test_finder_launch_finds_unregistered_homebrew_java(monkeypatch, machine, pr
     import jpype
     from dataqualy.audit import connectors
     monkeypatch.delenv('JAVA_HOME', raising=False)
-    monkeypatch.setattr(connectors.sys, 'platform', 'darwin')
+    monkeypatch.setattr(connectors, '_is_macos', lambda: True)
     monkeypatch.setattr(connectors.platform, 'machine', lambda: machine)
     monkeypatch.setattr(jpype, 'getDefaultJVMPath', Mock(side_effect=subprocess.CalledProcessError(1, '/usr/libexec/java_home')))
     formula = Path(prefix) / 'openjdk@17'
@@ -33,11 +33,11 @@ def test_finder_launch_finds_unregistered_homebrew_java(monkeypatch, machine, pr
     assert _jvm_path() == str(library)
 
 
-@pytest.mark.parametrize('system,java_home', [('darwin', ''), ('darwin', '/explicit/jdk'), ('win32', '')])
-def test_missing_java_has_public_error_and_respects_override(monkeypatch, system, java_home):
+@pytest.mark.parametrize('is_macos,java_home', [(True, ''), (True, '/explicit/jdk'), (False, '')])
+def test_missing_java_has_public_error_and_respects_override(monkeypatch, is_macos, java_home):
     import jpype
     from dataqualy.audit import connectors
-    monkeypatch.setattr(connectors.sys, 'platform', system)
+    monkeypatch.setattr(connectors, '_is_macos', lambda: is_macos)
     monkeypatch.setenv('JAVA_HOME', java_home)
     monkeypatch.setattr(jpype, 'getDefaultJVMPath', Mock(side_effect=jpype.JVMNotFoundException('private-path')))
     scan = Mock(return_value=[])
@@ -45,7 +45,7 @@ def test_missing_java_has_public_error_and_respects_override(monkeypatch, system
     with pytest.raises(AuditError, match='Java não localizado') as exc:
         _jvm_path()
     assert 'private-path' not in str(exc.value)
-    if java_home or system != 'darwin':
+    if java_home or not is_macos:
         scan.assert_not_called()
 
 
