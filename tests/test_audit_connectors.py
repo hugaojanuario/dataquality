@@ -28,7 +28,7 @@ def test_finder_launch_finds_unregistered_homebrew_java(monkeypatch, machine, pr
     monkeypatch.setattr(jpype, 'getDefaultJVMPath', Mock(side_effect=subprocess.CalledProcessError(1, '/usr/libexec/java_home')))
     formula = Path(prefix) / 'openjdk@17'
     library = formula / 'libexec/openjdk.jdk/Contents/Home/lib/server/libjvm.dylib'
-    monkeypatch.setattr(Path, 'glob', lambda self, pattern: [formula] if str(self) == prefix else [])
+    monkeypatch.setattr(Path, 'glob', lambda self, pattern: [formula])
     monkeypatch.setattr(Path, 'is_file', lambda self: self == library)
     assert _jvm_path() == str(library)
 
