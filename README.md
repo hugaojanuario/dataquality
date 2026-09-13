@@ -4,6 +4,16 @@ Ferramenta Python 3.11/MIT para auditar migrações localmente, sem depender de 
 Pacote e executável: `dataqualy`. Preserva CSV, regras PySpark e pacotes/anexos;
 adiciona auditoria de banco inteiro com snapshots, mapeamento e evidências redigidas.
 
+## Download do aplicativo
+
+- [macOS Apple Silicon — DMG](https://github.com/hugaojanuario/dataquality/releases/latest/download/DataQuality-macOS-arm64.dmg)
+- [Windows 64-bit — ZIP](https://github.com/hugaojanuario/dataquality/releases/latest/download/DataQuality-Windows-x64.zip)
+- [Windows 64-bit — EXE direto](https://github.com/hugaojanuario/dataquality/releases/latest/download/DataQuality-Windows-x64.exe)
+
+Todos os arquivos e checksums ficam na
+[release mais recente](https://github.com/hugaojanuario/dataquality/releases/latest).
+Java 17 e o driver JDBC do banco continuam necessários para conexões reais.
+
 ## Quick start — exemplo totalmente sintético
 
 ```sh
