@@ -17,7 +17,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--report", default="reports/validation-report.html",
         help="Caminho do relatório HTML.",
     )
-    subcommands.add_parser("gui", help="Abre a interface gráfica.")
+    gui = subcommands.add_parser("gui", help="Abre a interface moderna Qt Quick.")
+    gui.add_argument('--demo', action='store_true', help='Dados sintéticos, sem banco.')
+    gui.add_argument('--project', default='', help='Diretório do projeto existente ou novo.')
+    gui.add_argument('--screenshots', default='', help='Captura visual automática (exige --demo).')
+    subcommands.add_parser("gui-audit-legacy", help="Abre a auditoria anterior em Tkinter.")
     subcommands.add_parser("gui-legacy", help="Abre a interface original por tabela.")
     from dataqualy.audit.cli import add_commands
     add_commands(subcommands)
@@ -34,11 +38,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         from dataqualy.gui import DataQualyApp
         DataQualyApp().mainloop()
         return 0
-    if args.command == "gui":
-        from dataqualy.gui import launch_gui
-
-        launch_gui()
+    if args.command == 'gui-audit-legacy':
+        from dataqualy.audit.gui import AuditApp
+        AuditApp().mainloop()
         return 0
+    if args.command == "gui":
+        if args.screenshots and not args.demo:
+            print('--screenshots exige --demo para impedir exposição de dados reais.')
+            return 2
+        from dataqualy.desktop.app import launch_gui
+        return launch_gui(demo=args.demo, project=args.project, screenshots=args.screenshots)
     if args.command == "validate":
         try:
             config = load_config(args.config)

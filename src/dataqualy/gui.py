@@ -136,8 +136,8 @@ class DataQualyApp(tk.Tk):
 
 def launch_gui() -> None:
     """Abre a interface gráfica local."""
-    from dataqualy.audit.gui import AuditApp
-    AuditApp().mainloop()
+    from dataqualy.desktop.app import launch_gui as launch_desktop
+    launch_desktop()
 
 
 # @hugaojanuario

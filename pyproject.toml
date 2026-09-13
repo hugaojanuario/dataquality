@@ -10,10 +10,14 @@ requires-python = ">=3.11,<3.12"
 dependencies = [
     "pyspark==4.2.0",
     "PyYAML>=6.0,<7.0",
+    "PySide6>=6.8,<6.10",
 ]
 
 [project.scripts]
 dataqualy = "dataqualy.cli:main"
+
+[project.gui-scripts]
+dataqualy-desktop = "dataqualy.gui_main:main"
 
 [project.optional-dependencies]
 jdbc = ["JPype1>=1.5,<2.0"]
@@ -32,3 +36,6 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "--basetemp=.pytest-tmp"
 markers = ["integration: bancos reais opcionais (variáveis DATAQUALY_INTEGRATION_*)"]
+
+[tool.setuptools.package-data]
+"dataqualy.desktop" = ["qml/*.qml", "qml/qmldir", "qml/components/*.qml", "qml/pages/*.qml", "assets/*.svg", "assets/*.png", "assets/*.ico", "assets/*.icns", "assets/databases/*.png"]

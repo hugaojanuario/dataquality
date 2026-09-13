@@ -2,7 +2,6 @@ import runpy
 import sys
 from multiprocessing import freeze_support
 
-from dataqualy.gui import launch_gui
 
 
 PYSPARK_WORKER_MODULES = {"pyspark.daemon", "pyspark.worker"}
@@ -17,19 +16,20 @@ def requested_pyspark_module(arguments: list[str]) -> str | None:
     return None
 
 
-def main() -> None:
+def main() -> int:
     """Abre a GUI ou atende ao processo worker solicitado pelo Spark."""
     freeze_support()
     module = requested_pyspark_module(sys.argv)
     if module:
         sys.argv = sys.argv[2:]
         runpy.run_module(module, run_name="__main__")
-        return
-    launch_gui()
+        return 0
+    from dataqualy.desktop.app import main as desktop_main
+    return desktop_main()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
 
 
 # @hugaojanuario

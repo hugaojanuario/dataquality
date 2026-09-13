@@ -4,7 +4,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .checks import compare
-from .domain import CaptureOptions, Manifest, Snapshot, Stage, now
+from .domain import CaptureOptions, ConnectionProfile, Manifest, Profile, Snapshot, Stage, now
 from .inventory import capture
 from .mapping import suggest, validate_manifest
 from .reporting import write_report
@@ -16,6 +16,14 @@ class Project:
     run_id: str = field(default_factory=lambda: str(uuid4()))
     format_version: int = 1
     stages: list[Stage] = field(default_factory=list)
+    name: str = ''
+    description: str = ''
+    source: ConnectionProfile | None = None
+    target: ConnectionProfile | None = None
+    capture_profile: Profile = 'balanced'
+    include_system: bool = False
+    key_env: str = 'DATAQUALY_EVIDENCE_KEY'
+    last_page: int = 0
 
 
 class Workflow:
