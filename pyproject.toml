@@ -3,8 +3,8 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dataqualy"
-version = "0.2.0"
+name = "sincro"
+version = "0.3.0"
 description = "Validador de qualidade para migrações de dados"
 requires-python = ">=3.11,<3.12"
 dependencies = [
@@ -14,10 +14,10 @@ dependencies = [
 ]
 
 [project.scripts]
-dataqualy = "dataqualy.cli:main"
+sincro = "sincro.cli:main"
 
 [project.gui-scripts]
-dataqualy-desktop = "dataqualy.gui_main:main"
+sincro-desktop = "sincro.gui_main:main"
 
 [project.optional-dependencies]
 jdbc = ["JPype1>=1.5,<2.0"]
@@ -35,7 +35,7 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "--basetemp=.pytest-tmp"
-markers = ["integration: bancos reais opcionais (variáveis DATAQUALY_INTEGRATION_*)"]
+markers = ["integration: bancos reais opcionais (variáveis SINCRO_INTEGRATION_*)"]
 
 [tool.setuptools.package-data]
-"dataqualy.desktop" = ["qml/*.qml", "qml/qmldir", "qml/components/*.qml", "qml/pages/*.qml", "assets/*.svg", "assets/*.png", "assets/*.ico", "assets/*.icns", "assets/databases/*.png"]
+"sincro.desktop" = ["qml/*.qml", "qml/qmldir", "qml/components/*.qml", "qml/pages/*.qml", "assets/*.svg", "assets/*.png", "assets/*.ico", "assets/*.icns", "assets/databases/*.png"]

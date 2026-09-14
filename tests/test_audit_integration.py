@@ -3,16 +3,16 @@ import os
 
 import pytest
 
-from dataqualy.audit.cli import read_connection
-from dataqualy.audit.connectors import JDBCConnector
-from dataqualy.audit.domain import CaptureOptions
-from dataqualy.audit.inventory import capture
+from sincro.audit.cli import read_connection
+from sincro.audit.connectors import JDBCConnector
+from sincro.audit.domain import CaptureOptions
+from sincro.audit.inventory import capture
 
 
 @pytest.mark.integration
 @pytest.mark.parametrize('engine', ['firebird', 'postgresql', 'sqlserver', 'mysql'])
 def test_real_discovery_and_profiles(engine, tmp_path):
-    config_path = os.getenv(f'DATAQUALY_INTEGRATION_{engine.upper()}_CONFIG')
+    config_path = os.getenv(f'SINCRO_INTEGRATION_{engine.upper()}_CONFIG')
     if not config_path:
         pytest.skip('Instância/JAR/perfil não disponibilizados para ' + engine)
     profile = read_connection(config_path)

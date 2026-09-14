@@ -5,15 +5,15 @@ from threading import Event
 
 import pytest
 
-from dataqualy.audit.checks import compare
-from dataqualy.audit.domain import CaptureOptions, Column, ColumnMapping, ConnectionProfile, ForeignKey, Index, Manifest, PrimaryKey, Snapshot, Table, TableMapping
-from dataqualy.audit.evidence import Hasher, canonical
-from dataqualy.audit.inventory import capture
-from dataqualy.audit.mapping import suggest, validate_manifest
-from dataqualy.audit.orchestration import Workflow
-from dataqualy.audit.reporting import write_report
-from dataqualy.audit.storage import decode, load, save
-from dataqualy.audit.synthetic import MemoryConnector, demo
+from sincro.audit.checks import compare
+from sincro.audit.domain import CaptureOptions, Column, ColumnMapping, ConnectionProfile, ForeignKey, Index, Manifest, PrimaryKey, Snapshot, Table, TableMapping
+from sincro.audit.evidence import Hasher, canonical
+from sincro.audit.inventory import capture
+from sincro.audit.mapping import suggest, validate_manifest
+from sincro.audit.orchestration import Workflow
+from sincro.audit.reporting import write_report
+from sincro.audit.storage import decode, load, save
+from sincro.audit.synthetic import MemoryConnector, demo
 
 SECRET = 'synthetic-key-for-tests-only-0123456789'
 
@@ -46,7 +46,7 @@ def test_vertical_flow_and_privacy(tmp_path, fixtures):
     assert run.status == run.quality == 'passed'
     assert run.table_coverage == run.column_coverage == 100
     path = write_report(run, tmp_path / 'report.html')
-    assert 'DataQuality' in path.read_text()
+    assert 'Sincro' in path.read_text()
     assert load(tmp_path / 'source.json') == snapshots[0]
     for path in tmp_path.iterdir():
         content = path.read_bytes()
@@ -134,7 +134,7 @@ def test_tampered_evidence(tmp_path, fixtures):
 
 def test_empty_fingerprint_store_does_not_prove_equality(tmp_path, fixtures):
     import sqlite3
-    from dataqualy.audit.evidence import checksum
+    from sincro.audit.evidence import checksum
     snapshots = capture_three(tmp_path, fixtures)
     for snapshot in (snapshots[0], snapshots[2]):
         path = tmp_path / snapshot.evidence_file
@@ -296,7 +296,7 @@ def test_atomic_replace_failure_preserves_old_file(tmp_path, monkeypatch):
     path = tmp_path / 'x.json'
     path.write_text('old')
     def fail(*args): raise OSError('disk full')
-    monkeypatch.setattr('dataqualy.audit.storage.os.replace', fail)
+    monkeypatch.setattr('sincro.audit.storage.os.replace', fail)
     with pytest.raises(OSError):
         save(path, Manifest())
     assert path.read_text() == 'old'

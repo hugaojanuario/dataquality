@@ -1,17 +1,17 @@
-# DataQuality
+# Sincro
 
 Ferramenta Python 3.11/MIT para auditar migrações localmente, sem depender de IA.
-Pacote e executável: `dataqualy`. Preserva CSV, regras PySpark e pacotes/anexos;
+Pacote e executável: `sincro`. Preserva CSV, regras PySpark e pacotes/anexos;
 adiciona auditoria de banco inteiro com snapshots, mapeamento e evidências redigidas.
 
 ## Download do aplicativo
 
-- [macOS Apple Silicon — DMG](https://github.com/hugaojanuario/dataquality/releases/latest/download/DataQuality-macOS-arm64.dmg)
-- [Windows 64-bit — ZIP](https://github.com/hugaojanuario/dataquality/releases/latest/download/DataQuality-Windows-x64.zip)
-- [Windows 64-bit — EXE direto](https://github.com/hugaojanuario/dataquality/releases/latest/download/DataQuality-Windows-x64.exe)
+- [macOS Apple Silicon — DMG](https://github.com/hugaojanuario/sincro/releases/latest/download/Sincro-macOS-arm64.dmg)
+- [Windows 64-bit — ZIP](https://github.com/hugaojanuario/sincro/releases/latest/download/Sincro-Windows-x64.zip)
+- [Windows 64-bit — EXE direto](https://github.com/hugaojanuario/sincro/releases/latest/download/Sincro-Windows-x64.exe)
 
 Todos os arquivos e checksums ficam na
-[release mais recente](https://github.com/hugaojanuario/dataquality/releases/latest).
+[release mais recente](https://github.com/hugaojanuario/sincro/releases/latest).
 Java 17 e o driver JDBC do banco continuam necessários para conexões reais.
 
 ## Quick start — exemplo totalmente sintético
@@ -20,7 +20,7 @@ Java 17 e o driver JDBC do banco continuam necessários para conexões reais.
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev,jdbc]"
-dataqualy audit demo --project reports/synthetic-demo
+sincro audit demo --project reports/synthetic-demo
 ```
 
 Abra `reports/synthetic-demo/report.html`. O exemplo executa origem → baseline
@@ -31,8 +31,8 @@ sem Java, banco, conversor ou IA. Use outro diretório para repetir uma execuç�
 
 Edite `configs/audit-firebird.yml` e `configs/audit-postgresql.yml` com conexões de
 teste. Use usuários com SELECT e acesso a todos os metadados do escopo. Defina
-`DATAQUALY_SOURCE_PASSWORD` e `DATAQUALY_TARGET_PASSWORD` no ambiente; nunca em YAML.
-Defina também `DATAQUALY_EVIDENCE_KEY` com chave aleatória de pelo menos 32 bytes
+`SINCRO_SOURCE_PASSWORD` e `SINCRO_TARGET_PASSWORD` no ambiente; nunca em YAML.
+Defina também `SINCRO_EVIDENCE_KEY` com chave aleatória de pelo menos 32 bytes
 (por exemplo, saída de `python -c "import secrets; print(secrets.token_hex(32))"`).
 Mantenha a mesma chave nas capturas e guarde-a fora dos artefatos/repositório.
 
@@ -40,9 +40,9 @@ Suspenda escritas durante as capturas. `--quiescent` registra sua confirmação;
 o programa não suspende aplicações nem oferece snapshot global entre bancos.
 
 ```sh
-dataqualy audit capture --project reports/run-1 --role source --config configs/audit-firebird.yml --profile exhaustive --quiescent
-dataqualy audit capture --project reports/run-1 --role baseline --config configs/audit-postgresql.yml --profile balanced --quiescent
-dataqualy audit suggest --source reports/run-1/source.json --baseline reports/run-1/baseline.json --output reports/run-1/mapping.json
+sincro audit capture --project reports/run-1 --role source --config configs/audit-firebird.yml --profile exhaustive --quiescent
+sincro audit capture --project reports/run-1 --role baseline --config configs/audit-postgresql.yml --profile balanced --quiescent
+sincro audit suggest --source reports/run-1/source.json --baseline reports/run-1/baseline.json --output reports/run-1/mapping.json
 ```
 
 Revise `mapping.json`: destinos, colunas e chaves compostas; marque cada tabela
@@ -52,8 +52,8 @@ Não confirme sugestão ambígua. IDs de tabelas são strings JSON `[catalog,sch
 Execute seu conversor **externamente**. Depois:
 
 ```sh
-dataqualy audit capture --project reports/run-1 --role target --config configs/audit-postgresql.yml --profile exhaustive --quiescent
-dataqualy audit compare --source reports/run-1/source.json --baseline reports/run-1/baseline.json --target reports/run-1/target.json --mapping reports/run-1/mapping.json --report reports/run-1/report.html
+sincro audit capture --project reports/run-1 --role target --config configs/audit-postgresql.yml --profile exhaustive --quiescent
+sincro audit compare --source reports/run-1/source.json --baseline reports/run-1/baseline.json --target reports/run-1/target.json --mapping reports/run-1/mapping.json --report reports/run-1/report.html
 ```
 
 Para capturas independentes use `--output arquivo.json --run-id identificador` em
@@ -82,7 +82,7 @@ de instâncias reais implícita nesta matriz.
 
 ## Download dos drivers JDBC
 
-O DataQuality usa Java 17. Baixe o JAR do banco e selecione-o no campo
+O Sincro usa Java 17. Baixe o JAR do banco e selecione-o no campo
 **Driver JDBC (.jar)** da tela de conexões. Links verificados em 13/09/2026:
 
 | Banco | Versão indicada | Download direto | Página oficial |
@@ -98,7 +98,7 @@ caminho de dentro do container, não o caminho do computador hospedeiro.
 
 ## Arquitetura e limites
 
-`dataqualy.audit`: conectores → inventário/snapshot → mapeamento → checks →
+`sincro.audit`: conectores → inventário/snapshot → mapeamento → checks →
 orquestração → relatório. Contratos de conversor e IA são portas isoladas e não
 participam da decisão. Consulte [arquitetura, privacidade e limites](docs/audit-architecture.md)
 e [protocolo público JSON Lines](docs/conversion-protocol.md).
@@ -132,11 +132,11 @@ No Windows:
 
 ## Terminal
 
-    dataqualy validate --config configs/example.yml
+    sincro validate --config configs/example.yml
 
 Também funciona com:
 
-    python -m dataqualy validate --config configs/example.yml
+    python -m sincro validate --config configs/example.yml
 
 O comando retorna código 0 quando aprovado e 1 quando encontra divergências.
 O relatório padrão fica em reports/validation-report.html.
@@ -149,13 +149,13 @@ Não usa servidor HTTP nem navegador embutido.
 
 ```sh
 python -m pip install -e ".[dev,jdbc]"
-dataqualy gui
-dataqualy gui --demo
-dataqualy gui --project reports/run-1
+sincro gui
+sincro gui --demo
+sincro gui --project reports/run-1
 ```
 
-Também aceita `python -m dataqualy gui --demo`, `dataqualy-desktop --demo`
-e `python -m dataqualy.desktop.app --demo`. O modo demo usa somente 60 registros
+Também aceita `python -m sincro gui --demo`, `sincro-desktop --demo`
+e `python -m sincro.desktop.app --demo`. O modo demo usa somente 60 registros
 sintéticos em três tabelas e executa o motor real: 68 checks aprovados e um
 check divergente por um registro alterado. Não exige Java, JAR ou banco.
 O projeto demo é temporário; exporte o relatório antes de fechar.
@@ -170,7 +170,7 @@ O projeto demo é temporário; exporte o relatório antes de fechar.
 ou importe os perfis YAML em Conexões; descubra os bancos; gere e revise o
 mapeamento; capture origem e baseline na Validação; execute seu conversor
 externamente; capture e valide o destino. Confirme que as escritas estão suspensas.
-O perfil exaustivo usa a variável `DATAQUALY_EVIDENCE_KEY` já documentada acima.
+O perfil exaustivo usa a variável `SINCRO_EVIDENCE_KEY` já documentada acima.
 
 No Mapeamento, clique em uma linha para editar destino, colunas, chaves compostas
 (separadas por vírgula) e exclusões justificadas. Confirme cada revisão e salve
@@ -194,14 +194,14 @@ Atalhos: `Ctrl+1` a `Ctrl+7` para navegação; Tab/Shift+Tab entre controles;
 Enter/Espaço para acionar botões; Escape para fechar diálogos. Janela inicial de
 1280×800, mínimo 1024×700, com rolagem quando necessário.
 
-Compatibilidade temporária: `dataqualy gui-legacy` abre o fluxo Tkinter por tabela;
-`dataqualy gui-audit-legacy` abre a auditoria Tkinter anterior. Somente os comandos
+Compatibilidade temporária: `sincro gui-legacy` abre o fluxo Tkinter por tabela;
+`sincro gui-audit-legacy` abre a auditoria Tkinter anterior. Somente os comandos
 legacy precisam de Tkinter. CLI, YAML, snapshots e manifestos existentes permanecem.
 
 Para gerar a matriz visual de 32 capturas (8 telas × 2 temas × 2 tamanhos):
 
 ```sh
-dataqualy gui --demo --screenshots reports/screenshots
+sincro gui --demo --screenshots reports/screenshots
 ```
 
 O comando exige `--demo`, captura e encerra. Em CI use `QT_QPA_PLATFORM=offscreen`
@@ -239,7 +239,7 @@ O modo `package` verifica os arquivos extraídos antes de carregar dados no banc
 Copie `configs/package-example.yml`, ajuste os caminhos e cabeçalhos para o
 layout utilizado e execute:
 
-    dataqualy validate --config configs/package-example.yml
+    sincro validate --config configs/package-example.yml
 
 O manifesto de anexos deve possuir a coluna configurada em `path_column`. As
 colunas de tamanho e hash são opcionais; quando preenchidas, também serão
@@ -253,8 +253,8 @@ python -m compileall -q src tests
 ```
 
 Integrações reais são opcionais, marcadas `integration`: defina
-`DATAQUALY_INTEGRATION_FIREBIRD_CONFIG`, `DATAQUALY_INTEGRATION_POSTGRESQL_CONFIG`,
-`DATAQUALY_INTEGRATION_SQLSERVER_CONFIG` ou `DATAQUALY_INTEGRATION_MYSQL_CONFIG`
+`SINCRO_INTEGRATION_FIREBIRD_CONFIG`, `SINCRO_INTEGRATION_POSTGRESQL_CONFIG`,
+`SINCRO_INTEGRATION_SQLSERVER_CONFIG` ou `SINCRO_INTEGRATION_MYSQL_CONFIG`
 com caminho de perfil YAML local, JAR e variável de senha. Prepare apenas tabelas
 sintéticas em instância/container descartável. Execute `pytest -m integration -v`.
 Sem essas variáveis, os quatro casos são pulados com motivo explícito.
@@ -264,14 +264,14 @@ Para testar somente a fatia sem iniciar Spark: `pytest tests/test_audit*.py -v`.
 ## Aplicativo macOS
 
 ```sh
-DATAQUALITY_PYTHON=.venv/bin/python ./scripts/build-macos.sh --smoke-test
-open dist/DataQuality.app
-open dist/DataQuality.app --args --demo
+SINCRO_PYTHON=.venv/bin/python ./scripts/build-macos.sh --smoke-test
+open dist/Sincro.app
+open dist/Sincro.app --args --demo
 ```
 
-O build gera `dist/DataQuality.app` e um instalador
-`dist/DataQuality-macos-arm64.dmg` (Apple Silicon) ou `x86_64.dmg` (Intel).
-Abra o DMG e arraste DataQuality para Applications. Compile em cada arquitetura
+O build gera `dist/Sincro.app` e um instalador
+`dist/Sincro-macos-arm64.dmg` (Apple Silicon) ou `x86_64.dmg` (Intel).
+Abra o DMG e arraste Sincro para Applications. Compile em cada arquitetura
 usando o Python correspondente; não é um binário universal.
 
 O ícone de veleiro inclui versões Retina em `.icns`. O build local tem assinatura
@@ -283,8 +283,8 @@ O [workflow macOS](.github/workflows/desktop-macos.yml) gera e testa o aplicativ
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
     .\scripts\build-executable.ps1 -SmokeTest
 
-O resultado será dist\dataqualy.exe. O computador ainda precisa de Java 17 e
-dos drivers JDBC selecionados na interface para fluxos reais. `dataqualy.exe --demo`
+O resultado será dist\sincro.exe. O computador ainda precisa de Java 17 e
+dos drivers JDBC selecionados na interface para fluxos reais. `sincro.exe --demo`
 abre a demonstração sem esses requisitos. O spec coleta QML, plugins Qt e JPype;
 o veleiro usa `.ico` multirresolução no Windows. As fontes são as do sistema.
 

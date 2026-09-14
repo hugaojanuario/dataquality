@@ -13,7 +13,7 @@ Plano executado: (1) adicionar domínio e conectores sem substituir o legado;
 
 ## Camadas
 
-| Responsabilidade | Módulo `dataqualy.audit` |
+| Responsabilidade | Módulo `sincro.audit` |
 |---|---|
 | Modelos tipados, estados, versões | `domain`, `storage` |
 | Acesso JDBC e introspecção | `connectors`, `engines` |
@@ -95,7 +95,7 @@ após descobrir o esquema convertido, antes da captura final.
 
 `--quiescent` é uma afirmação do operador de que suspendeu escritas durante cada
 captura. Sem ela a consistência é `inconclusive`. Não há snapshot transacional global
-entre bancos nem bloqueio de escritores pelo DataQuality. Mudanças detectadas entre
+entre bancos nem bloqueio de escritores pelo Sincro. Mudanças detectadas entre
 contagem e leitura invalidam a captura, mas não detectam toda alteração concorrente.
 As contas JDBC precisam enxergar todas as tabelas dentro do escopo. Metadados
 ocultos por permissões não podem ser descobertos por um usuário sem privilégios.
@@ -162,8 +162,8 @@ um write atômico pela metade. Conversão externa não é controlada pela GUI ne
 
 ## Compatibilidade
 
-`dataqualy validate`, CSV/JDBC, regras e pacotes permanecem. A GUI anterior está em
-`dataqualy gui-legacy`; `dataqualy gui` e o executável abrem o fluxo novo. Relatório
+`sincro validate`, CSV/JDBC, regras e pacotes permanecem. A GUI anterior está em
+`sincro gui-legacy`; `sincro gui` e o executável abrem o fluxo novo. Relatório
 vazio deixou de aprovar (correção intencional). `sample_size` continua aceito no YAML
 antigo, mas o padrão passa a 0, o máximo a 20 e os valores ficam mascarados. O helper
 de HTML antigo ainda aceita amostras fornecidas explicitamente pela API; não o use

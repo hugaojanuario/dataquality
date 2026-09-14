@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <title>Sincro — ícone do aplicativo</title>
+  <defs>
+    <linearGradient id="tile" x1="512" y1="64" x2="512" y2="960" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f8fcff"/><stop offset="1" stop-color="#c5dced"/>
+    </linearGradient>
+  </defs>
+  <rect x="76" y="88" width="872" height="872" rx="194" fill="#0c2d46" opacity=".12"/>
+  <rect x="72" y="64" width="880" height="880" rx="196" fill="url(#tile)" stroke="#b8cddd" stroke-width="4"/>
+  <path d="M136 240C155 153 207 116 288 116H738" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".75"/>
+  <g fill="#14496e" transform="translate(134 121) scale(2.95)">
+    <path d="M129 20 201 163 129 180Z"/>
+    <path d="M117 53 49 188 117 181Z"/>
+    <path d="M24 207 236 176 203 229 47 229Z"/>
+  </g>
+</svg>

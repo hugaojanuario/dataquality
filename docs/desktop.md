@@ -1,4 +1,4 @@
-# Desktop DataQuality
+# Desktop Sincro
 
 ## Estado encontrado e entrega
 
@@ -66,13 +66,13 @@ Configurações.
 
 ## Demonstração e imagens
 
-`dataqualy gui --demo` cria um diretório temporário exclusivo. São três tabelas,
+`sincro gui --demo` cria um diretório temporário exclusivo. São três tabelas,
 60 registros, baseline vazia e um valor sintético alterado. As métricas são
 calculadas pelo mesmo motor; não são números preenchidos em QML. O modo é
 identificado no título, sidebar, rodapé e telas prioritárias. Credenciais e
 endereços apresentados são sintéticos (`demo.invalid`, domínio reservado).
 
-`dataqualy gui --demo --screenshots reports/screenshots` percorre oito telas,
+`sincro gui --demo --screenshots reports/screenshots` percorre oito telas,
 dois temas e dois tamanhos. As seis imagens principais ficam em `docs/screenshots`.
 Os screenshots não capturam conteúdo de outras janelas: usam `QQuickWindow.grabWindow`.
 
@@ -124,8 +124,8 @@ em `desktop/assets/` incluem SVG, PNG 1024, ICO com sete resoluções (16–256)
 ICNS Retina. `python scripts/generate-icons.py` reproduz os ícones; a geração de
 ICNS usa `iconutil` no macOS. O PNG/SVG também define o ícone da janela/Dock.
 
-O mesmo spec gera `DataQuality.app` no macOS, em modo onedir com BUNDLE, e
-`dataqualy.exe` no Windows, em modo onefile. `scripts/build-macos.sh` cria o DMG
+O mesmo spec gera `Sincro.app` no macOS, em modo onedir com BUNDLE, e
+`sincro.exe` no Windows, em modo onefile. `scripts/build-macos.sh` cria o DMG
 com atalho para Applications e oferece `--smoke-test`. São builds nativos:
 Apple Silicon foi verificado localmente; Intel/Windows precisam de seus runners.
 Nenhum certificado de assinatura ou credencial de publicação foi usado.

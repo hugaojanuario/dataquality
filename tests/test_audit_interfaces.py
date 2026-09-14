@@ -4,12 +4,12 @@ from threading import Event, get_ident
 
 import pytest
 
-from dataqualy.cli import main
-from dataqualy.audit.cli import read_connection
-from dataqualy.audit.domain import Manifest, TableMapping
-from dataqualy.audit.gui import Worker
-from dataqualy.audit.providers import AIConfig, parse_provider_line, validate_ai_suggestion
-from dataqualy.models import ValidationReport
+from sincro.cli import main
+from sincro.audit.cli import read_connection
+from sincro.audit.domain import Manifest, TableMapping
+from sincro.audit.gui import Worker
+from sincro.audit.providers import AIConfig, parse_provider_line, validate_ai_suggestion
+from sincro.models import ValidationReport
 from datetime import datetime
 
 

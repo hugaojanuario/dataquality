@@ -1,6 +1,6 @@
 import pytest
 
-from dataqualy.checks import (
+from sincro.checks import (
     find_invalid_dates,
     find_invalid_pattern,
     find_invalid_values,

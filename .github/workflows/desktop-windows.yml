@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['src/**', 'tests/**', 'pyproject.toml', 'dataqualy.spec', 'scripts/**', '.github/workflows/desktop-windows.yml']
+    paths: ['src/**', 'tests/**', 'pyproject.toml', 'sincro.spec', 'scripts/**', '.github/workflows/desktop-windows.yml']
   pull_request:
-    paths: ['src/**', 'tests/**', 'pyproject.toml', 'dataqualy.spec', 'scripts/**', '.github/workflows/desktop-windows.yml']
+    paths: ['src/**', 'tests/**', 'pyproject.toml', 'sincro.spec', 'scripts/**', '.github/workflows/desktop-windows.yml']
 jobs:
   desktop:
     runs-on: windows-latest
@@ -29,7 +29,7 @@ jobs:
         run: .\scripts\build-executable.ps1 -SmokeTest
       - uses: actions/upload-artifact@v4
         with:
-          name: dataquality-windows
+          name: sincro-windows
           path: |
-            dist/dataqualy.exe
+            dist/sincro.exe
             build/desktop-smoke/*.png

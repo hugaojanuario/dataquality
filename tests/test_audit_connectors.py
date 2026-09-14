@@ -5,11 +5,11 @@ from unittest.mock import Mock
 
 import pytest
 
-from dataqualy.audit.connectors import AuditError, Cancelled, JDBCConnector
-from dataqualy.audit.domain import CaptureOptions, Column, ConnectionProfile, ForeignKey, Index, PrimaryKey, Table
-from dataqualy.audit.engines import ENGINES, compatible, get_engine, jdbc_url
-from dataqualy.audit.evidence import Hasher
-from dataqualy.audit.connectors import _jvm_path
+from sincro.audit.connectors import AuditError, Cancelled, JDBCConnector
+from sincro.audit.domain import CaptureOptions, Column, ConnectionProfile, ForeignKey, Index, PrimaryKey, Table
+from sincro.audit.engines import ENGINES, compatible, get_engine, jdbc_url
+from sincro.audit.evidence import Hasher
+from sincro.audit.connectors import _jvm_path
 
 
 def test_jvm_uses_registered_runtime(monkeypatch):
@@ -21,7 +21,7 @@ def test_jvm_uses_registered_runtime(monkeypatch):
 @pytest.mark.parametrize('machine,prefix', [('arm64', '/opt/homebrew/opt'), ('x86_64', '/usr/local/opt')])
 def test_finder_launch_finds_unregistered_homebrew_java(monkeypatch, machine, prefix):
     import jpype
-    from dataqualy.audit import connectors
+    from sincro.audit import connectors
     monkeypatch.delenv('JAVA_HOME', raising=False)
     monkeypatch.setattr(connectors, '_is_macos', lambda: True)
     monkeypatch.setattr(connectors.platform, 'machine', lambda: machine)
@@ -36,7 +36,7 @@ def test_finder_launch_finds_unregistered_homebrew_java(monkeypatch, machine, pr
 @pytest.mark.parametrize('is_macos,java_home', [(True, ''), (True, '/explicit/jdk'), (False, '')])
 def test_missing_java_has_public_error_and_respects_override(monkeypatch, is_macos, java_home):
     import jpype
-    from dataqualy.audit import connectors
+    from sincro.audit import connectors
     monkeypatch.setattr(connectors, '_is_macos', lambda: is_macos)
     monkeypatch.setenv('JAVA_HOME', java_home)
     monkeypatch.setattr(jpype, 'getDefaultJVMPath', Mock(side_effect=jpype.JVMNotFoundException('private-path')))

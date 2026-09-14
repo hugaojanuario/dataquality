@@ -17,8 +17,8 @@ PySide6 6.9.3 e Java 17. Nenhuma instância real de banco foi utilizada.
 | Telas vazias e captura incompleta | Testadas sem aprovação indevida |
 | Capturas offscreen | 32 imagens: 8 telas × 2 temas × 2 tamanhos |
 | Abertura e captura nativa no macOS | 32 imagens, log QML vazio |
-| PyInstaller macOS ARM64 | `DataQuality.app` concluído; demonstração do bundle gera 32 imagens, sem warnings QML |
-| Instalador macOS ARM64 | `DataQuality-macos-arm64.dmg` gerado; checksum aprovado por `hdiutil verify` |
+| PyInstaller macOS ARM64 | `Sincro.app` concluído; demonstração do bundle gera 32 imagens, sem warnings QML |
+| Instalador macOS ARM64 | `Sincro-macos-arm64.dmg` gerado; checksum aprovado por `hdiutil verify` |
 | Recursos QML e identidade no wheel e aplicativo | 35 recursos QML e 5 assets; SVG, PNG, ICO e ICNS incluídos |
 | Identidade visual | Veleiro vetorial, tema claro inspirado na referência e tema oceano escuro; telas revisadas em 1280×800 e 1024×700 |
 | QtWebEngine/QtWebView no executável final | Ausentes; hook de coleta restrito às famílias desktop |
@@ -37,10 +37,10 @@ Comandos de reprodução:
 ```sh
 python -m pytest -q
 python -m compileall -q src tests scripts
-python -m dataqualy gui --demo
-python -m dataqualy gui --demo --screenshots reports/screenshots
-python -m PyInstaller --clean --noconfirm dataqualy.spec
-DATAQUALITY_PYTHON=.venv/bin/python ./scripts/build-macos.sh --smoke-test
+python -m sincro gui --demo
+python -m sincro gui --demo --screenshots reports/screenshots
+python -m PyInstaller --clean --noconfirm sincro.spec
+SINCRO_PYTHON=.venv/bin/python ./scripts/build-macos.sh --smoke-test
 ```
 
 No macOS com Java Homebrew, a suíte foi executada com `JAVA_HOME` apontando para

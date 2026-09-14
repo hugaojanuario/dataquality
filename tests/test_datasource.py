@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from dataqualy.datasource import (
+from sincro.datasource import (
     build_jdbc_url,
     collect_jars,
     resolve_password,
@@ -35,10 +35,10 @@ def test_build_postgresql_url():
 
 
 def test_resolve_password_reads_environment(monkeypatch):
-    monkeypatch.setenv("DATAQUALY_TEST_PASSWORD", "secret")
+    monkeypatch.setenv("SINCRO_TEST_PASSWORD", "secret")
 
     assert (
-        resolve_password({"password_env": "DATAQUALY_TEST_PASSWORD"})
+        resolve_password({"password_env": "SINCRO_TEST_PASSWORD"})
         == "secret"
     )
 

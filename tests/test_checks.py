@@ -1,4 +1,4 @@
-from dataqualy.checks import find_duplicate_keys, find_missing_records, find_value_differences
+from sincro.checks import find_duplicate_keys, find_missing_records, find_value_differences
 
 def test_find_duplicate_keys(spark):
     dataframe = spark.createDataFrame(

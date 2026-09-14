@@ -1,4 +1,4 @@
-from dataqualy.gui import build_database_config
+from sincro.gui import build_database_config
 
 
 def test_build_database_config_keeps_passwords_in_memory():

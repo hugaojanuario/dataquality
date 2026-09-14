@@ -2,9 +2,9 @@ from unittest.mock import Mock, patch
 
 from pyspark.sql import Row
 
-from dataqualy.cli import main
-from dataqualy.validator import _evaluate, run_validation
-from dataqualy.package_validator import run_package_validation
+from sincro.cli import main
+from sincro.validator import _evaluate, run_validation
+from sincro.package_validator import run_package_validation
 
 
 def test_legacy_samples_mask_personal_values():
@@ -17,12 +17,12 @@ def test_legacy_samples_mask_personal_values():
 
 def test_legacy_connection_error_does_not_leak(tmp_path, capsys):
     config = {'source': {'path': 'x'}, 'target': {'path': 'y'}, 'checks': {}}
-    with patch('dataqualy.validator.create_spark_session', side_effect=RuntimeError('password=SECRET private@example.invalid')):
+    with patch('sincro.validator.create_spark_session', side_effect=RuntimeError('password=SECRET private@example.invalid')):
         report = run_validation(config)
     assert not report.passed
     assert report.results[0].status == 'error'
     assert 'SECRET' not in report.results[0].message
-    with patch('dataqualy.cli.load_config', side_effect=ValueError('SECRET')):
+    with patch('sincro.cli.load_config', side_effect=ValueError('SECRET')):
         assert main(['validate', '--config', 'invalid']) == 2
     assert 'SECRET' not in capsys.readouterr().out
 

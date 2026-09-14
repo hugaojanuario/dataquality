@@ -11,7 +11,7 @@ from PySide6.QtCore import QByteArray, QBuffer, QIODevice, QRectF, Qt
 from PySide6.QtGui import QImage, QPainter
 from PySide6.QtSvg import QSvgRenderer
 
-ASSETS = Path(__file__).resolve().parents[1] / 'src/dataqualy/desktop/assets'
+ASSETS = Path(__file__).resolve().parents[1] / 'src/sincro/desktop/assets'
 
 
 def render(name: str, size: int) -> QImage:
@@ -48,7 +48,7 @@ def main() -> None:
     (ASSETS / 'app-icon.ico').write_bytes(bytes(directory) + b''.join(frames))
     if sys.platform == 'darwin':
         with tempfile.TemporaryDirectory() as temporary:
-            iconset = Path(temporary) / 'DataQuality.iconset'
+            iconset = Path(temporary) / 'Sincro.iconset'
             iconset.mkdir()
             for size in (16, 32, 128, 256, 512):
                 for scale in (1, 2):

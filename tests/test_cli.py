@@ -1,8 +1,8 @@
 from datetime import datetime
 from unittest.mock import patch
 
-from dataqualy.cli import main
-from dataqualy.models import CheckResult, ValidationReport
+from sincro.cli import main
+from sincro.models import CheckResult, ValidationReport
 
 
 def _report() -> ValidationReport:
@@ -18,8 +18,8 @@ def test_validate_command_generates_report(tmp_path):
     config = {"migration": {"name": "example"}}
     output = tmp_path / "report.html"
     with (
-        patch("dataqualy.cli.load_config", return_value=config),
-        patch("dataqualy.cli.run_validation", return_value=_report()) as run,
+        patch("sincro.cli.load_config", return_value=config),
+        patch("sincro.cli.run_validation", return_value=_report()) as run,
     ):
         exit_code = main(
             ["validate", "--config", "configs/example.yml", "--report", str(output)]
@@ -32,9 +32,9 @@ def test_validate_command_generates_report(tmp_path):
 def test_validate_command_dispatches_package_mode(tmp_path):
     config = {"mode": "package", "package": {"files": []}}
     with (
-        patch("dataqualy.cli.load_config", return_value=config),
+        patch("sincro.cli.load_config", return_value=config),
         patch(
-            "dataqualy.cli.run_package_validation", return_value=_report()
+            "sincro.cli.run_package_validation", return_value=_report()
         ) as run,
     ):
         exit_code = main(

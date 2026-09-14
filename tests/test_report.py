@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from dataqualy.models import CheckResult, ValidationReport
-from dataqualy.report import write_html_report
+from sincro.models import CheckResult, ValidationReport
+from sincro.report import write_html_report
 
 
 def test_write_html_report_escapes_values(tmp_path):

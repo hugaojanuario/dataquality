@@ -1,6 +1,6 @@
 import hashlib
 
-from dataqualy.package_validator import check_attachments, check_csv_layout
+from sincro.package_validator import check_attachments, check_csv_layout
 
 
 def test_check_csv_layout_detects_wrong_header(tmp_path):

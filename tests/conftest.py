@@ -1,6 +1,6 @@
 import pytest
 
-from dataqualy.spark import create_spark_session
+from sincro.spark import create_spark_session
 
 """
 essa notacao abaixo cria uma unica sessao Spark para todos os teste e finaliza eles no final

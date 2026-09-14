@@ -7,7 +7,7 @@ source:
   port: 3050
   database: C:/data/source.fdb
   user: SYSDBA
-  password_env: DATAQUALY_SOURCE_PASSWORD
+  password_env: SINCRO_SOURCE_PASSWORD
   table: SOURCE_RECORDS
   jar: C:/drivers/jaybird.jar
 target:
@@ -17,7 +17,7 @@ target:
   port: 5432
   database: target_database
   user: validator
-  password_env: DATAQUALY_TARGET_PASSWORD
+  password_env: SINCRO_TARGET_PASSWORD
   table: target_records
   jar: C:/drivers/postgresql.jar
 key: id

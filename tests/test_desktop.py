@@ -16,13 +16,13 @@ from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtTest import QTest
 import shiboken6
 
-from dataqualy.desktop.app import create_engine
-from dataqualy.desktop.service import AuditService, Request, Result
-from dataqualy.desktop.viewmodel import AppViewModel, ConnectionViewModel, default_project_directory, safe_error
-from dataqualy.audit.domain import CaptureOptions, ConnectionProfile, Manifest
-from dataqualy.audit.storage import load
-from dataqualy.audit.synthetic import MemoryConnector
-from dataqualy.audit.connectors import AuditError, Cancelled
+from sincro.desktop.app import create_engine
+from sincro.desktop.service import AuditService, Request, Result
+from sincro.desktop.viewmodel import AppViewModel, ConnectionViewModel, default_project_directory, migrate_settings, safe_error
+from sincro.audit.domain import CaptureOptions, ConnectionProfile, Manifest
+from sincro.audit.storage import load
+from sincro.audit.synthetic import MemoryConnector
+from sincro.audit.connectors import AuditError, Cancelled
 
 
 def test_connection_prerequisite_errors_are_actionable():
@@ -77,7 +77,7 @@ def test_engine_defaults_and_invalid_port(model):
     assert model.source.fields['port'] == ''
     with pytest.raises(ValueError):  # UserError handled below separately
         int(model.source.fields['port'])
-    from dataqualy.desktop.service import UserError
+    from sincro.desktop.service import UserError
     with pytest.raises(UserError):
         model.source.profile()
 
@@ -93,6 +93,19 @@ def test_default_project_directory_does_not_depend_on_process_working_directory(
         assert vm._directory == directory
     finally:
         vm.shutdown()
+
+
+def test_renamed_application_migrates_saved_settings(tmp_path):
+    legacy = QSettings(str(tmp_path / 'legacy.ini'), QSettings.Format.IniFormat)
+    current = QSettings(str(tmp_path / 'current.ini'), QSettings.Format.IniFormat)
+    legacy.setValue('lastProject', '/projects/existing')
+    legacy.setValue('dark', True)
+    legacy.sync()
+
+    migrate_settings(current, legacy)
+
+    assert current.value('lastProject') == '/projects/existing'
+    assert current.value('dark', False, type=bool) is True
 
 
 def test_project_configuration_round_trips_without_password(qt_app, tmp_path):
@@ -223,7 +236,7 @@ def test_demo_runs_domain_and_mapping_review(qt_app, tmp_path):
         assert vm.state['sourceRows'] == '60'
         assert vm.state['tableCoverage'] == '100%'
         assert vm.state['findingRows'][0]['tone'] == 'failed'
-        assert 'dataquality-demo-' not in json.dumps(vm.state)
+        assert 'sincro-demo-' not in json.dumps(vm.state)
         vm.editMapping(0)
         vm.updateMapping('ignored', 'true')
         vm.confirmMapping()
@@ -242,7 +255,7 @@ def test_demo_runs_domain_and_mapping_review(qt_app, tmp_path):
 
 
 def test_real_adapter_workflow_with_injected_memory_connector(qt_app, model, monkeypatch):
-    from dataqualy.audit.domain import Column, PrimaryKey, Table
+    from sincro.audit.domain import Column, PrimaryKey, Table
     source = Table('ITEMS', columns=[Column('ID', 'INTEGER', 4, False, 10)], primary_key=PrimaryKey(['ID']))
     target = Table('items', 'public', columns=[Column('id', 'int4', 4, False, 10)], primary_key=PrimaryKey(['id']))
     target_rows = []
@@ -254,7 +267,7 @@ def test_real_adapter_workflow_with_injected_memory_connector(qt_app, model, mon
     for vm in (model.source, model.target):
         vm.setField('database', 'synthetic')
         vm.setSecret('never-persist-this-secret')
-    monkeypatch.setenv('DATAQUALY_EVIDENCE_KEY', 'synthetic-test-key-' * 3)
+    monkeypatch.setenv('SINCRO_EVIDENCE_KEY', 'synthetic-test-key-' * 3)
     model.configure('profile', 'exhaustive')
     model.configure('quiescent', 'true')
     for action in ('discover', 'suggest', 'source', 'baseline'):
@@ -377,7 +390,7 @@ def test_project_switcher_opens_from_header(qt_app, model):
 
 
 def test_empty_gui_and_incomplete_capture_remain_honest(qt_app, model):
-    from dataqualy.audit.domain import Finding, Snapshot
+    from sincro.audit.domain import Finding, Snapshot
     engine = create_engine(model)
     try:
         for page in range(8):
@@ -396,8 +409,8 @@ def test_empty_gui_and_incomplete_capture_remain_honest(qt_app, model):
 
 
 def test_cli_gui_switches_and_screenshot_privacy_gate(monkeypatch):
-    from dataqualy.cli import main
-    from dataqualy.desktop import app
+    from sincro.cli import main
+    from sincro.desktop import app
     calls = []
     monkeypatch.setattr(app, 'launch_gui', lambda **kw: calls.append(kw) or 0)
     assert main(['gui', '--demo']) == 0

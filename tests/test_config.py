@@ -1,6 +1,6 @@
 import pytest
 
-from dataqualy.config import validate_config
+from sincro.config import validate_config
 
 
 def test_validate_config_rejects_plain_list():

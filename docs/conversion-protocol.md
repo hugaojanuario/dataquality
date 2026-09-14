@@ -2,7 +2,7 @@
 
 Somente contrato. Não há implementação de motor, adaptador proprietário, subprocesso
 de conversão ou modelo de IA neste repositório. Cada empresa implementa seu sidecar
-e mantém código/configuração privada fora do DataQuality MIT.
+e mantém código/configuração privada fora do Sincro MIT.
 
 ## Transporte
 

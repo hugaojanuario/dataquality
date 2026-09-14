@@ -18,7 +18,7 @@ jobs:
     env:
       QT_QPA_PLATFORM: offscreen
       QT_QUICK_BACKEND: software
-      DATAQUALITY_PYTHON: python
+      SINCRO_PYTHON: python
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,11 +34,11 @@ jobs:
       - name: Prepare macOS installer
         run: |
           test "$(uname -m)" = "arm64"
-          mv dist/DataQuality-macos-arm64.dmg dist/DataQuality-macOS-arm64.dmg
+          mv dist/Sincro-macos-arm64.dmg dist/Sincro-macOS-arm64.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: release-macos
-          path: dist/DataQuality-macOS-arm64.dmg
+          path: dist/Sincro-macOS-arm64.dmg
           if-no-files-found: error
 
   windows:
@@ -64,14 +64,14 @@ jobs:
       - name: Prepare Windows downloads
         shell: pwsh
         run: |
-          Copy-Item dist\dataqualy.exe dist\DataQuality-Windows-x64.exe
-          Compress-Archive -Path dist\DataQuality-Windows-x64.exe -DestinationPath dist\DataQuality-Windows-x64.zip -Force
+          Copy-Item dist\sincro.exe dist\Sincro-Windows-x64.exe
+          Compress-Archive -Path dist\Sincro-Windows-x64.exe -DestinationPath dist\Sincro-Windows-x64.zip -Force
       - uses: actions/upload-artifact@v4
         with:
           name: release-windows
           path: |
-            dist/DataQuality-Windows-x64.exe
-            dist/DataQuality-Windows-x64.zip
+            dist/Sincro-Windows-x64.exe
+            dist/Sincro-Windows-x64.zip
           if-no-files-found: error
 
   publish:
@@ -93,5 +93,5 @@ jobs:
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" release/* --clobber
           else
-            gh release create "$GITHUB_REF_NAME" release/* --verify-tag --generate-notes --title "DataQuality $GITHUB_REF_NAME"
+            gh release create "$GITHUB_REF_NAME" release/* --verify-tag --generate-notes --title "Sincro $GITHUB_REF_NAME"
           fi
