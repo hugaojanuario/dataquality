@@ -37,8 +37,8 @@ if is_macos:
         bundle_identifier='org.sincro.desktop',
         info_plist={
             'CFBundleDisplayName': 'Sincro',
-            'CFBundleShortVersionString': '0.3.0',
-            'CFBundleVersion': '3',
+            'CFBundleShortVersionString': '0.4.0',
+            'CFBundleVersion': '4',
             'NSHighResolutionCapable': True,
             'LSMinimumSystemVersion': '12.0',
             'NSHumanReadableCopyright': 'Sincro contributors — MIT',

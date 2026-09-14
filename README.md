@@ -14,6 +14,10 @@ Todos os arquivos e checksums ficam na
 [release mais recente](https://github.com/hugaojanuario/sincro/releases/latest).
 Java 17 e o driver JDBC do banco continuam necessários para conexões reais.
 
+O aplicativo verifica atualizações em segundo plano quando é aberto. Quando houver
+uma versão nova, o menu lateral mostra **Atualizar para vX**. O download é validado
+por tamanho e SHA-256 antes de o Sincro substituir o aplicativo e reiniciar.
+
 ## Quick start — exemplo totalmente sintético
 
 ```sh

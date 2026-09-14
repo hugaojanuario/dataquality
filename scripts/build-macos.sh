@@ -10,6 +10,9 @@ dq_python="${SINCRO_PYTHON:-python3.11}"
 "$dq_python" -m pip install -e '.[build,jdbc]'
 "$dq_python" -m compileall -q src
 "$dq_python" -m PyInstaller --clean --noconfirm sincro.spec
+xattr -cr dist/Sincro.app
+codesign --force --deep --sign - dist/Sincro.app
+codesign --verify --deep --strict dist/Sincro.app
 if [ "${1:-}" = '--smoke-test' ]; then
     QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
         dist/Sincro.app/Contents/MacOS/Sincro --demo --screenshots build/macos-smoke

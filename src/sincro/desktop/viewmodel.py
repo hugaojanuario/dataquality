@@ -5,10 +5,12 @@ from copy import deepcopy
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from threading import Event
 from typing import Any
 import json
 import os
 import re
+import sys
 
 from PySide6.QtCore import QObject, Property, QRunnable, QSettings, QStandardPaths, QThreadPool, Qt, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices
@@ -19,7 +21,9 @@ from sincro.audit.engines import ENGINES
 from sincro.audit.mapping import validate_manifest
 from sincro.audit.orchestration import Project
 from sincro.audit.storage import save
+from sincro import __version__
 from .service import AuditService, Request, Result, UserError
+from .updater import UpdateCancelled, UpdateInfo, check_for_update, download_update, prepare_update
 
 STATUS = {'passed': 'Aprovado', 'failed': 'Divergência', 'inconclusive': 'Inconclusivo',
           'error': 'Erro', 'skipped': 'Ignorado', 'pending': 'Pendente', 'running': 'Em execução'}
@@ -150,6 +154,48 @@ class Job(QRunnable):
             self.request.secret = None
 
 
+class UpdateSignals(QObject):
+    checked = Signal(object)
+    failed = Signal(str)
+    progress = Signal(int)
+    prepared = Signal()
+
+
+class UpdateCheckJob(QRunnable):
+    def __init__(self) -> None:
+        super().__init__()
+        self.signals = UpdateSignals()
+
+    @Slot()
+    def run(self) -> None:
+        try:
+            self.signals.checked.emit(check_for_update(__version__))
+        except Exception:
+            # A failed startup check stays silent and never blocks normal use.
+            self.signals.checked.emit(None)
+
+
+class UpdateInstallJob(QRunnable):
+    def __init__(self, info: UpdateInfo, cancel: Event) -> None:
+        super().__init__()
+        self.info, self.cancel = info, cancel
+        self.signals = UpdateSignals()
+
+    @Slot()
+    def run(self) -> None:
+        try:
+            downloaded = download_update(self.info, cancel=self.cancel,
+                                         progress=self.signals.progress.emit)
+            if self.cancel.is_set():
+                raise UpdateCancelled('Atualização cancelada.')
+            prepare_update(self.info, downloaded)
+            self.signals.prepared.emit()
+        except UpdateCancelled:
+            self.signals.failed.emit('')
+        except Exception:
+            self.signals.failed.emit('Não foi possível instalar a atualização. Tente novamente.')
+
+
 class AppViewModel(QObject):
     changed = Signal()
     appearanceChanged = Signal()
@@ -196,9 +242,15 @@ class AppViewModel(QObject):
         self._service_factory = service_factory
         self._service: AuditService | None = None
         self._job: Job | None = None
+        self._update_info: UpdateInfo | None = None
+        self._update_busy, self._update_checking, self._update_progress = False, False, -1
+        self._update_cancel = Event()
+        self._update_job: UpdateCheckJob | UpdateInstallJob | None = None
         self._loading_project = False
         self._pool = QThreadPool(self)
         self._pool.setMaxThreadCount(1)
+        self._update_pool = QThreadPool(self)
+        self._update_pool.setMaxThreadCount(1)
         if demo:
             for vm, database in [(self.source, 'synthetic_source'), (self.target, 'synthetic_target')]:
                 vm._profile.database = database
@@ -240,7 +292,7 @@ class AppViewModel(QObject):
         if self._demo:
             return
         current = str(self._directory.resolve())
-        stored = self._settings.value('recentProjects', [])
+        stored = [] if self._demo else self._settings.value('recentProjects', [])
         paths = [stored] if isinstance(stored, str) else list(stored or [])
         self._settings.setValue('recentProjects', [current] + [p for p in paths if p != current][:4])
         self._settings.setValue('lastProject', current)
@@ -376,7 +428,7 @@ class AppViewModel(QObject):
         blocked = sum(not m.confirmed or (not m.ignored and (not m.target or any(not c.target and not c.ignored for c in m.columns))) for m in mappings)
         result_status = self._run.status if self._run else 'pending'
         completed = sum(role in self._snapshots and self._snapshots[role].complete for role in ('source', 'baseline', 'target')) + bool(self._run)
-        stored = self._settings.value('recentProjects', [])
+        stored = [] if self._demo else self._settings.value('recentProjects', [])
         recent_paths = [stored] if isinstance(stored, str) else list(stored or [])
         recent_projects = [dict(name=Path(path).name, path=path,
                                 current=Path(path) == self._directory.resolve())
@@ -384,6 +436,12 @@ class AppViewModel(QObject):
         return dict(demo=self._demo, page=self._page, projectName=self._name, description=self._description,
                     directory='Ambiente temporário de demonstração' if self._demo else str(self._directory),
                     busy=self._busy, status=self._status, error=self._error, details=self._details, progress=self._progress,
+                    currentVersion=__version__, updateAvailable=self._update_info is not None,
+                    updateBusy=self._update_busy, updateProgress=self._update_progress,
+                    updateLabel=(f'Baixando atualização · {self._update_progress}%'
+                                 if self._update_busy and self._update_progress >= 0 else
+                                 'Preparando atualização…' if self._update_busy else
+                                 f'Atualizar para v{self._update_info.version}' if self._update_info else ''),
                     engineNames=ENGINELABELS, engineKeys=list(ENGINES), profile=self._profile, keyEnv=self._key_env,
                     quiescent=self._quiescent, includeSystem=self._system, discoveryRows=rows,
                     discovered=sum(len(s.tables) for s in self._discovery.values()), selectedCount=len(self._selected),
@@ -569,6 +627,53 @@ class AppViewModel(QObject):
         if action == 'demo' and (not self._demo or self._snapshots): return
         self._start(action)
 
+    @Slot()
+    def checkForUpdates(self) -> None:
+        if self._demo or not getattr(sys, 'frozen', False) or self._update_checking or self._update_info:
+            return
+        self._update_checking = True
+        self._update_job = UpdateCheckJob()
+        self._update_job.signals.checked.connect(self._update_checked, Qt.ConnectionType.QueuedConnection)
+        self._update_pool.start(self._update_job)
+
+    @Slot(object)
+    def _update_checked(self, info: UpdateInfo | None) -> None:
+        self._update_checking = False
+        self._update_info = info
+        self.changed.emit()
+
+    @Slot()
+    def installUpdate(self) -> None:
+        if self._busy or self._update_busy or self._update_info is None:
+            return
+        self._update_busy, self._update_progress = True, 0
+        self._update_cancel.clear()
+        self._update_job = UpdateInstallJob(self._update_info, self._update_cancel)
+        self._update_job.signals.progress.connect(self._update_download_progress, Qt.ConnectionType.QueuedConnection)
+        self._update_job.signals.prepared.connect(self._update_prepared, Qt.ConnectionType.QueuedConnection)
+        self._update_job.signals.failed.connect(self._update_install_failed, Qt.ConnectionType.QueuedConnection)
+        self.changed.emit()
+        self.toast.emit(f'Baixando Sincro v{self._update_info.version}…', 'running')
+        self._update_pool.start(self._update_job)
+
+    @Slot(int)
+    def _update_download_progress(self, progress: int) -> None:
+        self._update_progress = progress
+        self.changed.emit()
+
+    @Slot()
+    def _update_prepared(self) -> None:
+        self._update_progress = 100
+        self.changed.emit()
+        self.readyToClose.emit()
+
+    @Slot(str)
+    def _update_install_failed(self, message: str) -> None:
+        self._update_busy, self._update_progress = False, -1
+        self.changed.emit()
+        if message:
+            self.toast.emit(message, 'error')
+
     def _start(self, action: str, file: str = '') -> None:
         if self._busy: return
         self._active_action = action
@@ -682,6 +787,8 @@ class AppViewModel(QObject):
 
     def shutdown(self) -> None:
         self.cancel()
+        self._update_cancel.set()
         self._pool.waitForDone()
+        self._update_pool.waitForDone()
         self.source._password = self.target._password = None
         if self._temp: self._temp.cleanup()

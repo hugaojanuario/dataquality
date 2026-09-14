@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import ".."
 import "../components"
 Page {
-    PageTitle { title: "Configurações"; subtitle: ""; Layout.fillWidth: true }
+    PageTitle { title: "Configurações"; subtitle: "Sincro v" + appModel.state.currentVersion; Layout.fillWidth: true }
     GlassPanel {
         Layout.fillWidth: true; implicitHeight: appearance.implicitHeight + Tokens.lg * 2
         ColumnLayout {

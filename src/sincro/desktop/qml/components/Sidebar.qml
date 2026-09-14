@@ -91,6 +91,17 @@ Rectangle {
             }
             Layout.bottomMargin: Tokens.md
         }
+        SidebarItem {
+            objectName: "updateButton"
+            visible: appModel.state.updateAvailable || appModel.state.updateBusy
+            Layout.fillWidth: true
+            text: appModel.state.updateLabel
+            iconName: "arrow"
+            collapsed: root.collapsed
+            selected: appModel.state.updateAvailable && !appModel.state.updateBusy
+            enabled: appModel.state.updateAvailable && !appModel.state.updateBusy && !appModel.state.busy
+            onClicked: appModel.installUpdate()
+        }
         SidebarItem { Layout.fillWidth: true; text: "Configurações"; iconName: "settings"; collapsed: root.collapsed; selected: appModel.state.page === 6; onClicked: appModel.navigate(6) }
         SidebarItem { Layout.fillWidth: true; text: root.collapsed ? "Expandir menu" : "Recolher menu"; iconName: "menu"; collapsed: root.collapsed; onClicked: root.collapsed = !root.collapsed }
     }

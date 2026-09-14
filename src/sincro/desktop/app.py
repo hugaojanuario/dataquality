@@ -41,6 +41,7 @@ def launch_gui(*, demo: bool = False, project: str = '', screenshots: str = '') 
     model.appearanceChanged.emit()
     model.appearanceChanged.connect(lambda: apply_backdrop(int(window.winId()), model.dark))
     QTimer.singleShot(0, lambda: model.execute('demo' if demo else 'load'))
+    QTimer.singleShot(1000, model.checkForUpdates)
     if screenshots:
         if not demo:
             raise ValueError('Screenshots automáticos exigem --demo.')

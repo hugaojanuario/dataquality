@@ -34,11 +34,14 @@ jobs:
       - name: Prepare macOS installer
         run: |
           test "$(uname -m)" = "arm64"
+          ditto -c -k --sequesterRsrc --keepParent dist/Sincro.app dist/Sincro-macOS-arm64.zip
           mv dist/Sincro-macos-arm64.dmg dist/Sincro-macOS-arm64.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: release-macos
-          path: dist/Sincro-macOS-arm64.dmg
+          path: |
+            dist/Sincro-macOS-arm64.dmg
+            dist/Sincro-macOS-arm64.zip
           if-no-files-found: error
 
   windows:

@@ -18,6 +18,7 @@ import shiboken6
 
 from sincro.desktop.app import create_engine
 from sincro.desktop.service import AuditService, Request, Result
+from sincro.desktop.updater import UpdateInfo
 from sincro.desktop.viewmodel import AppViewModel, ConnectionViewModel, default_project_directory, migrate_settings, safe_error
 from sincro.audit.domain import CaptureOptions, ConnectionProfile, Manifest
 from sincro.audit.storage import load
@@ -106,6 +107,25 @@ def test_renamed_application_migrates_saved_settings(tmp_path):
 
     assert current.value('lastProject') == '/projects/existing'
     assert current.value('dark', False, type=bool) is True
+
+
+def test_sidebar_exposes_a_new_release_without_blocking_the_app(qt_app, model):
+    info = UpdateInfo('0.5.0', 'v0.5.0', 'Sincro-macOS-arm64.zip',
+                      'https://github.com/hugaojanuario/sincro/releases/download/v0.5.0/Sincro-macOS-arm64.zip',
+                      'sha256:' + '0' * 64, 1, '')
+    model._update_checked(info)
+    engine = create_engine(model)
+    try:
+        window = engine.rootObjects()[0]
+        QTest.qWait(30)
+        qt_app.processEvents()
+        button = window.findChild(QObject, 'updateButton')
+        assert button is not None
+        assert button.property('visible') is True
+        assert button.property('text') == 'Atualizar para v0.5.0'
+        assert model.state['currentVersion'] == '0.4.0'
+    finally:
+        shiboken6.delete(engine)
 
 
 def test_project_configuration_round_trips_without_password(qt_app, tmp_path):
@@ -237,6 +257,7 @@ def test_demo_runs_domain_and_mapping_review(qt_app, tmp_path):
         assert vm.state['tableCoverage'] == '100%'
         assert vm.state['findingRows'][0]['tone'] == 'failed'
         assert 'sincro-demo-' not in json.dumps(vm.state)
+        assert vm.state['recentProjects'] == []
         vm.editMapping(0)
         vm.updateMapping('ignored', 'true')
         vm.confirmMapping()
